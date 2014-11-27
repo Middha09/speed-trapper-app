@@ -1,0 +1,33 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<script src="http://localhost:23561/Scripts/jquery-1.6.4.min.js" type="text/javascript"></script>
+<script src="http://localhost:23561/Scripts/jquery.signalR-2.1.2.js" type="text/javascript"></script>
+<script src="http://localhost:23561/signalr/hubs"></script>
+<div id="runningCars" style="margin-top: 40px;"></div>
+<script>
+    $(function () {
+        $.connection.hub.url = "http://localhost:23561/signalr";
+        var proxy = $.connection.speedTrapperHub;
+        proxy.client.ShowCarDetails = function (carName, speed) {
+            if ($("#runningCars").children().length == 0) {
+                $("#runningCars").attr("data-speed", speed).append("<span>My Name is <b>" + carName + "</b></span>" + "<h1 class='success'>" + speed + " Km</h1><span>(Current Speed)</span>");
+            }
+        };
+        $.connection.hub.start(function () {
+            proxy.server.getCarDetails(false);
+        });
+
+        proxy.client.TrapSpeed = function (speed) {
+            debugger;
+            if (parseInt($("#runningCars").attr("data-speed")) > speed) {
+                $("#runningCars span").last().text("Over speed " + $("#runningCars").attr("data-speed"));
+                $("#runningCars h1").text("You're busted").removeClass("success").addClass("fail");
+            }
+        }
+
+    });
+</script>
+

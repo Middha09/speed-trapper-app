@@ -1,0 +1,85 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+<script src="~/Scripts/jquery-1.6.4.js"></script>
+<script src="~/Scripts/jquery.signalR-2.1.2.js"></script>
+<script src='~/signalr/js'></script>
+<script src="~/Scripts/toastr.min.js"></script>
+<link href="~/Content/toastr.min.css" rel="stylesheet" />
+<div style="border-bottom:solid 2px #a4f0f7">
+    <h1 class="wrapTop">Speed Trap</h1>
+    <div class="control">
+        <span>OverSpeed:</span>@Html.TextBox("overSpeed")<input type="button" onclick="trapper()" value="Apply" />
+    </div>
+    <div style="clear:both"></div>
+</div>
+
+<div id="runningCars"></div>
+
+
+<script type="text/javascript">
+    $(function () {
+        var proxy = $.connection.speedTrapperHub;
+        proxy.client.ShowCarDetails = function (carName,speed) {
+              $("#runningCars").append("<div data-speed=" + speed + " class='wrap'><h1 class='name'>" + carName + "</h1>" + "<div>" + speed + "</div>");
+        };
+
+        proxy.client.TrapSpeed = function (speed) {
+            var div = $("#runningCars div");
+            div.each(function () {
+                if (parseInt($(this).attr("data-speed")) > speed)
+                    $(this).children("div").removeClass("success").addClass("fail")
+                else
+                    $(this).children("div").removeClass("fail").addClass("success")
+            })
+        };
+
+        $.connection.hub.start(function () {
+            proxy.server.getCarDetails(true);
+        });
+
+        trapper = function () {
+            var speedLimit = $("#overSpeed").val();
+            if (speedLimit == "" || speedLimit <= 0)
+                NotifyMessage("please enter a value greater than 0","Fail");
+            else
+            proxy.server.trappSpeed(speedLimit);
+        }
+
+    });
+
+
+
+
+    NotifyMessage = function (message, Result) {
+        var title = "Success";
+        toastr.options = {
+            "closeButton": false,
+            "debug": false,
+            "positionClass": "toast-bottom-left",
+            "onclick": null,
+            "showDuration": "600",
+            "hideDuration": "600",
+            "timeOut": "3500",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        }
+
+        if (Result == "Info") {
+            title = "info";
+            toastr.info(message, title);
+        }
+        else if (Result != "Success") {
+            title = "Failed";
+            toastr.error(message, title);
+        }
+        else
+            toastr.success(message, title);
+    };
+   
+
+</script>
